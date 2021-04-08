@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<title>chat-history</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+* {font-family: 'Noto Sans TC', sans-serif; font-size: 16px; overflow-wrap: break-word; max-width: 100%; color: black!important;}
+body, html {height: 100%;background: #D8DEE5;overflow: visible;}
+#dialog {max-width: 1000px;margin: auto;}
+.line {width: 100%;}
+.user-left, .user-right {font-size: 14.5px;background-color: #00000000;line-height: 80%;-webkit-user-select: none;}
+.user-left {text-align: right;}
+.user-right {text-align: left;}
+@media only screen and (max-width: 500px) {
+	.user-left, .user-right {font-size: 13px;padding: 5px!important;}
+}
+.msg-left {background-color: #00000000; text-align: left;}
+.msg-right {background-color: #00000000; text-align: right;}
+.msg-left div {text-align: left;}
+.msg-right div {text-align: left;}
+.left {text-align: left;}
+.right {text-align: right;}
+.msg {padding: 4px 16px;}
+.LINE {border: 1px solid #00c30099;background-color: white;}
+.self > .LINE {background-color: #00c30099;}
+.MSG {border: 1px solid #0084ff99;background-color: white;}
+.self > .MSG {background-color: #0084ff99;}
+.gif {max-width: 50%;max-height: 50vh;}
+.sticker {max-width: 50%;max-height: 50vh;}
+.video {max-height: 50vh;}
+.photo {max-height: 50vh;}
+#tools-button {position: fixed;left: 15px;bottom: 15px;opacity: 50%;font-size: 30px;cursor: pointer;z-index: 100;}
+#tools-button:hover {transform: scale(1.1);transition: 0.5s;}
+#tools-search-result {overflow-y: auto;max-height: 300px!important;list-style-type: none;margin: 0!important;padding-inline-start: 10px;}
+.search-user {display: inline-block;line-height: 120%;font-size: 50%;}
+.search-li {border-top: 1px solid #ddd;}
+.self.search-li{background-color: #eee;}
+.click:active {background-color: blueviolet;}
+::-webkit-scrollbar {width: 10px;}
+::-webkit-scrollbar-track {background: #f1f1f1;}
+::-webkit-scrollbar-thumb {background: #888;}
+::-webkit-scrollbar-thumb:hover {background: #555;}
+.date, #date-top {top: 0;text-align: center;background-color: turquoise;}
+.date {position: -webkit-sticky;position: sticky;z-index: 2;}
+#date-top {position: fixed;z-index: 1;width: 100%;max-width: 1000px;left: 50%;transform: translateX(-50%);}
+.search-msg{display: inline;}
+</style>
+<body onload="dialog.lastElementChild.scrollIntoView();">
+	<div id="date-top"></div>
+	<div id="dialog"></div>
+	<div class="line w3-row" style="max-width: 1000px;margin: auto;">
+		<div class="w3-col l3 m3 s2 user-left"><br></div>
+		<div class="w3-col l6 m6 s8 w3-border-top w3-border-green"><br></div>
+		<div class="w3-col l3 m3 s2 user-right"><br></div>
+	</div>
+	<div class="w3-modal" id="tools-modal">
+		<div class="w3-modal-content w3-card-4 w3-animate-zoom" style="max-width:600px">
+			<div class="w3-center"><div style="-webkit-user-select: none;"><br><br></div>
+				<span onclick="toggleModal();" class="w3-button w3-xlarge w3-hover-red w3-display-topright" title="Close Modal">&times;</span>
+			</div>
+			<div class="w3-container" id="tools-form">
+				<div class="w3-section">
+					<div class="w3-row">
+						<div class="w3-half w3-margin-bottom">
+							<input class="w3-input w3-border" type="date" placeholder="jump to..." id="tools-date">
+						</div>
+						<div class="w3-half w3-margin-bottom">
+							<button class="w3-input w3-border w3-deep-orange" id="tools-search-button" onclick="jumptodate();">go</button>
+						</div>
+					</div>
+					<div class="w3-row">
+						<div class="w3-half w3-margin-bottom">
+							<input class="w3-input w3-border" type="number" placeholder="jump to #" id="tools-idx" min="0">
+						</div>
+						<div class="w3-half w3-margin-bottom">
+							<button class="w3-input w3-border w3-deep-orange" id="tools-search-button" onclick="jumptoidx();">go</button>
+						</div>
+					</div>
+					<div class="w3-row">
+						<div class="w3-margin-bottom">
+							<select class="w3-select w3-border" id="view-as" oninput="switchview();">
+								<option value="[anonymous]" selected="true">[anonymous]</option>
+							</select>
+						</div>
+					</div>
+					<div class="w3-row">
+						<div class="w3-half w3-margin-bottom">
+							<input class="w3-input w3-border" type="text" placeholder="keywords" id="tools-search-text" autocomplete="off">
+						</div>
+						<div class="w3-quarter w3-margin-bottom">
+							<button class="w3-input w3-border w3-deep-orange" id="tools-search-button" onclick="search(true);">&#128270; regex</button>
+						</div>
+						<div class="w3-quarter w3-margin-bottom">
+							<button class="w3-input w3-border w3-deep-orange" id="tools-search-button" onclick="search(false);">&#128270; plain</button>
+						</div>
+					</div>
+					<div class="w3-margin-bottom w3-border" style="display: none;">
+						<ul id="tools-search-result"></ul>
+					</div>
+					<!-- <button class="w3-button w3-block w3-green w3-section w3-padding" type="submit">Apply</button> -->
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="tools-button" onclick="toggleModal();">&#128295;</div>
+	<script src="./data.js"></script>
+	<script src="./main.js"></script>
+</body>
+</html>
+
